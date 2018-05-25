@@ -73,22 +73,22 @@ m_dep = cc.find_library('libm')
 png_dep = cc.find_library('libpng')
 fontconfig_dep = dependency('fontconfig')
 freetype_dep = dependency('freetype2')
-zlib_dep = cc.find_library('z')
-lzo_dep = cc.find_library('lzo2')
-dl_dep = cc.find_library('dl')
-x11_dep = dependency('x11')
-xext_dep = dependency('xext')
+zlib_dep = dependency('zlib', required: false)
+lzo_dep = dependency('lzo2', required: false)
+dl_dep = cc.find_library('dl', required: false)
+x11_dep = dependency('x11', required: false)
+xext_dep = dependency('xext', required: false)
 
 deps = [pixman_dep, m_dep, png_dep]
 
 conf = configuration_data()
 
-if zlib_dep.found() and cc.has_header('zlib.h')
+if zlib_dep.found()
   deps += [zlib_dep]
   conf.set('HAVE_ZLIB', 1)
 endif
 
-if lzo_dep.found() and cc.has_header('lzo/lzo2a.h')
+if lzo_dep.found()
   deps += [lzo_dep]
   conf.set('HAVE_LZO', 1)
 endif
