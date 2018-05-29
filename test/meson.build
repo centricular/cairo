@@ -406,9 +406,8 @@ cairo_test_constructors = custom_target('cairo-test-constructors.c',
 incpdiff = include_directories('pdiff')
 
 subdir('pdiff')
-subdir('output')
 
-exe = executable('cairo-test-suite', cairo_test_suite_sources + test_sources + [cairo_test_constructors],
+exe = executable('cairo-test-suite', [cairo_test_suite_sources, test_sources, cairo_test_constructors],
   include_directories: [incbase, incsrc, incboilerplate, incpdiff],
   c_args: ['-DHAVE_CONFIG_H'],
   link_with: [libcairo, libcairoboilerplate, libpdiff],
@@ -419,4 +418,4 @@ env = environment()
 
 env.set('srcdir', meson.current_source_dir())
 
-test('cairo', exe, timeout: 5 * 60, env: env, workdir: join_paths(meson.current_build_dir(), 'output'))
+test('cairo', exe, timeout: 60 * 60, env: env, workdir: meson.current_build_dir())

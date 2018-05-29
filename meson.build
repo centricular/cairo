@@ -250,6 +250,23 @@ elif cc.has_header('libkern/OSAtomic.h')
   conf.set('HAVE_OS_ATOMIC_OPS', 1)
 endif
 
+test_mkdir_c_args = []
+if conf.get('HAVE_SYS_STAT_H', 0) == 1
+  test_mkdir_c_args += ['-DHAVE_SYS_STAT_H']
+endif
+
+if conf.get('HAVE_IO_H', 0) == 1
+  test_mkdir_c_args += ['-DHAVE_IO_H']
+endif
+
+if cc.links(files('meson-cc-tests/mkdir-variant-1.c'), args: test_mkdir_c_args)
+  conf.set('HAVE_MKDIR', 1)
+elif cc.links(files('meson-cc-tests/mkdir-variant-2.c'), args: test_mkdir_c_args)
+  conf.set('HAVE_MKDIR', 2)
+else
+  conf.set('HAVE_MKDIR', 0)
+endif
+
 if not ['x86', 'x86_64'].contains(host_machine.cpu_family())
   conf.set('ATOMIC_OP_NEEDS_MEMORY_BARRIER', 1)
 endif
