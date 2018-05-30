@@ -950,6 +950,7 @@ POPEN:
 
     *close_cb = pclose;
     sprintf (command, "%s %s %d", any2ppm, filename, page);
+    printf("command: %s\n", command);
     return popen (command, "rb");
 }
 

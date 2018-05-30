@@ -392,11 +392,143 @@ test_sources = [
   'zero-mask.c',
 ]
 
+test_pthread_sources = [
+  'pthread-same-source.c',
+  'pthread-show-text.c',
+  'pthread-similar.c',
+]
+
+test_ft_font_sources = [
+  'bitmap-font.c',
+  'ft-font-create-for-ft-face.c',
+  'ft-show-glyphs-positioning.c',
+  'ft-show-glyphs-table.c',
+  'ft-text-vertical-layout-type1.c',
+  'ft-text-vertical-layout-type3.c',
+  'ft-text-antialias-none.c',
+]
+
+test_gl_sources = [
+  'gl-device-release.c',
+  'gl-oversized-surface.c',
+  'gl-surface-source.c',
+]
+
+test_egl_sources = [
+  'egl-oversized-surface.c',
+  'egl-surface-source.c',
+]
+
+test_quartz_sources = [
+  'quartz-surface-source.c',
+]
+
+test_pdf_sources = [
+  'pdf-features.c',
+  'pdf-mime-data.c',
+  'pdf-surface-source.c',
+  'pdf-tagged-text.c',
+]
+
+test_ps_sources = [
+  'ps-eps.c',
+  'ps-features.c',
+  'ps-surface-source.c',
+]
+
+test_svg_sources = [
+  'svg-surface.c',
+  'svg-clip.c',
+  'svg-surface-source.c',
+]
+
+test_xcb_sources = [
+  'xcb-surface-source.c',
+]
+
+test_xlib_sources = [
+  'xlib-surface.c',
+  'xlib-surface-source.c',
+]
+
+test_xlib_xrender_sources = [
+  'get-xrender-format.c',
+]
+
+test_multi_page_sources = [
+  'multi-page.c',
+  'mime-unique-id.c',
+]
+
+test_fallback_resolution_sources = [
+  'fallback-resolution.c',
+]
+
 cairo_test_suite_sources = [
   'buffer-diff.c',
   'cairo-test.c',
   'cairo-test-runner.c',
 ]
+
+build_any2ppm = false
+has_multipage_surfaces = false
+add_fallback_resolution = false
+
+if conf.get('HAVE_REAL_PTHREAD', 0) == 1
+  test_sources += test_pthread_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_FT_FONT', 0) == 1 and feature_conf.get('CAIRO_HAS_FC_FONT', 0) == 1
+  test_sources += test_ft_font_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_QUARTZ_SURFACE', 0) == 1
+  test_sources += test_quartz_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_PDF_SURFACE', 0) == 1
+  test_sources += test_pdf_sources
+  has_multipage_surfaces = true
+  add_fallback_resolution = true
+  build_any2ppm = true
+endif
+
+if feature_conf.get('CAIRO_HAS_PS_SURFACE', 0) == 1
+  test_sources += test_ps_sources
+  has_multipage_surfaces = true
+  add_fallback_resolution = true
+  build_any2ppm = true
+endif
+
+if feature_conf.get('CAIRO_HAS_SVG_SURFACE', 0) == 1
+  test_sources += test_svg_sources
+  build_any2ppm = true
+  add_fallback_resolution = true
+endif
+
+if feature_conf.get('CAIRO_HAS_XCB_SURFACE', 0) == 1
+  test_sources += test_xcb_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_XLIB_SURFACE', 0) == 1
+  test_sources += test_xlib_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_XLIB_XRENDER_SURFACE', 0) == 1
+  test_sources += test_xlib_xrender_sources
+endif
+
+if has_multipage_surfaces
+  test_sources += test_multi_page_sources
+endif
+
+if add_fallback_resolution
+  test_sources += test_fallback_resolution_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1
+  build_any2ppm = true
+endif
 
 cairo_test_constructors = custom_target('cairo-test-constructors.c',
   input: files(test_sources),
@@ -404,6 +536,17 @@ cairo_test_constructors = custom_target('cairo-test-constructors.c',
   command: [python3, files('make-cairo-test-constructors.py')[0], '@OUTPUT@', '@INPUT@'])
 
 incpdiff = include_directories('pdiff')
+
+test_depends = []
+
+if build_any2ppm
+  any2ppm_exe = executable('any2ppm', 'any2ppm.c',
+    c_args: ['-DHAVE_CONFIG_H'],
+    include_directories: [incbase, incsrc, inccairoscript],
+    link_with: [libcairo, libcairoscript],
+  )
+  test_depends += [any2ppm_exe]
+endif
 
 subdir('pdiff')
 
@@ -418,4 +561,8 @@ env = environment()
 
 env.set('srcdir', meson.current_source_dir())
 
-test('cairo', exe, timeout: 60 * 60, env: env, workdir: meson.current_build_dir())
+test('cairo', exe,
+  timeout: 60 * 60,
+  env: env,
+  workdir: meson.current_build_dir(),
+  depends: test_depends)
