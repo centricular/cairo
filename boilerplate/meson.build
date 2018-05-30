@@ -56,6 +56,20 @@ if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1
   cairo_boilerplate_sources += ['cairo-boilerplate-script.c']
 endif
 
+# All tests crash with FPE
+if feature_conf.get('CAIRO_HAS_EGL_FUNCTIONS', 0) == 1 and false
+  cairo_boilerplate_sources += ['cairo-boilerplate-egl.c']
+endif
+
+# All tests crash with FPE
+if feature_conf.get('CAIRO_HAS_GLX_FUNCTIONS', 0) == 1 and false
+  cairo_boilerplate_sources += ['cairo-boilerplate-glx.c']
+endif
+
+if feature_conf.get('CAIRO_HAS_WGL_FUNCTIONS', 0) == 1
+  cairo_boilerplate_sources += ['cairo-boilerplate-wgl.c']
+endif
+
 incboilerplate = include_directories('.')
 
 cairo_boilerplate_constructors = custom_target('cairo-boilerplate-constructors.c',

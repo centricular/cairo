@@ -470,6 +470,32 @@ cairo_test_suite_sources = [
   'cairo-test-runner.c',
 ]
 
+cairo_test_trace_sources = [
+  'cairo-test-trace.c',
+  'buffer-diff.c',
+]
+
+imagediff_sources = [
+  'imagediff.c',
+  'buffer-diff.c',
+]
+
+png_flatten_sources = [
+  'png-flatten.c',
+]
+
+pdf2png_sources = [
+  'pdf2png.c',
+]
+
+svg2png_sources = [
+  'svg2png.c',
+]
+
+ps2png_sources = [
+  'ps2png.c',
+]
+
 build_any2ppm = false
 has_multipage_surfaces = false
 add_fallback_resolution = false
@@ -518,6 +544,10 @@ if feature_conf.get('CAIRO_HAS_XLIB_XRENDER_SURFACE', 0) == 1
   test_sources += test_xlib_xrender_sources
 endif
 
+if feature_conf.get('CAIRO_HAS_EGL_FUNCTIONS', 0) == 1
+  test_sources += test_egl_sources
+endif
+
 if has_multipage_surfaces
   test_sources += test_multi_page_sources
 endif
@@ -539,16 +569,44 @@ incpdiff = include_directories('pdiff')
 
 test_depends = []
 
+subdir('pdiff')
+
+if conf.get('CAIRO_CAN_TEST_PDF_SURFACE', 0) == 1
+  exe = executable('pdf2png', pdf2png_sources,
+    dependencies: deps,
+  )
+endif
+
+if conf.get('CAIRO_CAN_TEST_SVG_SURFACE', 0) == 1
+  exe = executable('svg2png', svg2png_sources,
+    dependencies: deps,
+  )
+endif
+
+if conf.get('CAIRO_HAS_SPECTRE', 0) == 1
+  exe = executable('ps2png', ps2png_sources,
+    dependencies: deps,
+  )
+endif
+
 if build_any2ppm
   any2ppm_exe = executable('any2ppm', 'any2ppm.c',
     c_args: ['-DHAVE_CONFIG_H'],
     include_directories: [incbase, incsrc, inccairoscript],
     link_with: [libcairo, libcairoscript],
+    dependencies: deps,
   )
   test_depends += [any2ppm_exe]
 endif
 
-subdir('pdiff')
+if have_shm
+  cairo_test_trace_exe = executable('cairo-test-trace', cairo_test_trace_sources,
+  include_directories: [incbase, incsrc, incboilerplate, incpdiff, inccairoscript, inccairomissing],
+  c_args: ['-DHAVE_CONFIG_H'] + pthread_c_args,
+  link_with: [libcairo, libcairoboilerplate, libpdiff, libcairoscript, libcairomissing],
+  link_args: extra_link_args,
+  dependencies: deps + [rt_dep])
+endif
 
 exe = executable('cairo-test-suite', [cairo_test_suite_sources, test_sources, cairo_test_constructors],
   include_directories: [incbase, incsrc, incboilerplate, incpdiff],
