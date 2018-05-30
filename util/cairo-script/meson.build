@@ -22,7 +22,7 @@ csi_trace_sources = [
 
 inccairoscript = include_directories('.')
 
-libcairoscript = static_library('libcairo-script', cairoscript_interpreter_sources,
+libcairoscript = static_library('cairo-script', cairoscript_interpreter_sources,
   c_args: ['-DHAVE_CONFIG_H'],
   include_directories: [incbase, incsrc],
   dependencies: deps,

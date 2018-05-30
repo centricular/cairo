@@ -252,6 +252,26 @@ cairo_svg_sources = [
   'cairo-svg-surface.c',
 ]
 
+cairo_egl_sources = [
+  'cairo-egl-context.c',
+]
+
+cairo_glx_sources = [
+  'cairo-glx-context.c',
+]
+
+cairo_wgl_sources = [
+  'cairo-wgl-context.c',
+]
+
+cairo_xml_sources = [
+  'cairo-xml-surface.c',
+]
+
+cairo_tee_sources = [
+  'cairo-tee-surface.c',
+]
+
 cairo_no_warn_c_args = cc.get_supported_arguments([
   '-Wno-attributes',
   '-Wno-unused-but-set-variable',
@@ -336,6 +356,26 @@ endif
 
 if feature_conf.get('CAIRO_HAS_SVG_SURFACE', 0) == 1
   cairo_sources += cairo_svg_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_EGL_FUNCTIONS', 0) == 1
+  cairo_sources += cairo_egl_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_GLX_FUNCTIONS', 0) == 1
+  cairo_sources += cairo_glx_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_WGL_FUNCTIONS', 0) == 1
+  cairo_sources += cairo_wgl_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_XML_SURFACE', 0) == 1
+  cairo_sources += cairo_xml_sources
+endif
+
+if feature_conf.get('CAIRO_HAS_TEE_SURFACE', 0) == 1
+  cairo_sources += cairo_tee_sources
 endif
 
 libcairo = library('cairo', cairo_sources,
