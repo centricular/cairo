@@ -78,8 +78,19 @@ lzo_dep = dependency('lzo2', required: false)
 dl_dep = cc.find_library('dl', required: false)
 x11_dep = dependency('x11', required: false)
 xext_dep = dependency('xext', required: false)
+xcb_dep = dependency('xcb')
+xcb_render_dep = dependency('xcb-render')
+qtgui_dep = dependency('QtGui')
+libudev_dep = dependency('libudev')
+libdrm_dep = dependency('libdrm')
+gl_dep = dependency('gl')
+glesv2_dep = dependency('glesv2', required: false)
+glesv3_dep = dependency('glesv3', required: false)
+cogl_dep = dependency('cogl-2.0-experimental')
+directfb_dep = dependency('directfb', required: false)
 
 deps = [pixman_dep, m_dep, png_dep]
+extra_link_args = []
 
 conf = configuration_data()
 
@@ -116,7 +127,9 @@ if freetype_dep.found()
     'FT_Done_MM_Var',
   ]
 
-  conf.set('FT_HAS_COLOR', cc.links(files('meson-cc-tests/ft_has_color.c'), dependencies: freetype_dep, name: 'FT has color'))
+  if not cc.links(files('meson-cc-tests/ft_has_color.c'), dependencies: freetype_dep, name: 'FT has color')
+    conf.set('FT_HAS_COLOR', '(0)')
+  endif
 
   deps += [freetype_dep]
 endif
@@ -147,7 +160,9 @@ if x11_dep.found() and xext_dep.found()
   if res.returncode() == 0
     conf.set('IPC_RMID_DEFERRED_RELEASE', 1)
   endif
+endif
 
+if feature_conf.get('CAIRO_HAS_XLIB_SURFACE', 0) == 1
   xrender_dep = dependency('xrender')
 
   if xrender_dep.found()
@@ -162,6 +177,152 @@ if x11_dep.found() and xext_dep.found()
 
     deps += [xrender_dep]
   endif
+endif
+
+if xcb_dep.found() and xcb_render_dep.found()
+  feature_conf.set('CAIRO_HAS_XCB_SURFACE', 1)
+  deps += [xcb_dep, xcb_render_dep]
+endif
+
+if feature_conf.get('CAIRO_HAS_XCB_SURFACE', 0) == 1 and feature_conf.get('CAIRO_HAS_XLIB_SURFACE', 0) == 1
+  x11xcb_dep = dependency('x11-xcb')
+  if x11xcb_dep.found()
+    feature_conf.set('CAIRO_HAS_XLIB_XCB_FUNCTIONS', 1)
+    deps += [x11xcb_dep]
+  endif
+endif
+
+if feature_conf.get('CAIRO_HAS_XCB_SURFACE', 0) == 1
+  xcbshm_dep = dependency('xcb-shm')
+  if xcbshm_dep.found()
+    feature_conf.set('CAIRO_HAS_XCB_SHM_FUNCTIONS', 1)
+    deps += [xcbshm_dep]
+  endif
+endif
+
+# Tests crash and burn
+if qtgui_dep.found() and false
+  feature_conf.set('CAIRO_HAS_QT_SURFACE', 1)
+  deps += [qtgui_dep]
+  extra_link_args += ['-lstdc++']
+endif
+
+# Untested
+if cc.has_header('ApplicationServices/ApplicationServices.h') # Untested
+  if cc.has_header('CoreGraphics/CoreGraphics.h')
+    extra_link_args += ['-Xlinker', '-framework', '-Xlinker', 'CoreGraphics']
+  else
+    extra_link_args += ['-Xlinker', '-framework', '-Xlinker', 'ApplicationServices']
+  endif
+
+  feature_conf.set('CAIRO_HAS_QUARTZ_SURFACE', 1)
+  feature_conf.set('CAIRO_HAS_QUARTZ_FONT', 1)
+  feature_conf.set('CAIRO_HAS_QUARTZ_IMAGE_SURFACE', 1)
+endif
+
+if host_machine.system() == 'windows'
+  feature_conf.set('CAIRO_HAS_WIN32_SURFACE')
+  extra_link_args += ['lgdi32', '-lmsimg32']
+endif
+
+if feature_conf.get('CAIRO_HAS_WIN32_SURFACE', 0) == 1
+  feature_conf.set('CAIRO_HAS_WIN32_FONT', 1)
+endif
+
+# Doesn't build since at least 2011
+if libudev_dep.found() and libdrm_dep.found() and false
+  feature_conf.set('CAIRO_HAS_DRM_SURFACE', 1)
+  deps += [libudev_dep, libdrm_dep]
+endif
+
+# Not even trying to port gallium as it depends on drm
+
+# Not porting BEOS or OS/2 backends either, meson doesn't support those
+
+# GL / GLESV2 / GLESV3 are mutually exclusive
+use_gl = false
+if not gl_dep.found()
+  if cc.has_header('GL/gl.h')
+    extra_link_args += ['-lGL']
+    use_gl = true
+  endif
+else
+  use_gl = true
+  deps += [gl_dep]
+endif
+
+if use_gl
+  feature_conf.set('CAIRO_HAS_GL_SURFACE', 1)
+endif
+
+if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0
+  use_glesv2 = false
+  if not glesv2_dep.found()
+    if cc.has_header('GLES2/gl2.h')
+      use_glesv2 = true
+      extra_link_args += ['-lGLESv2']
+    endif
+  else
+    use_glesv2 = true
+  endif
+
+  if use_glesv2
+    feature_conf.set('CAIRO_HAS_GLESV2_SURFACE', 1)
+  endif
+endif
+
+if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0 and feature_conf.get('CAIRO_HAS_GLESV2_SURFACE', 0) == 0
+  use_glesv3 = false
+  if not glesv3_dep.found()
+    if cc.has_header('GLES3/gl3.h')
+      use_glesv3 = true
+      extra_link_args += ['-lGLESv2']
+    endif
+  else
+    use_glesv3 = true
+  endif
+
+  if use_glesv3
+    feature_conf.set('CAIRO_HAS_GLESV3_SURFACE', 1)
+  endif
+endif
+
+# Broken for me, depends on experimental API
+if cogl_dep.found() and false
+  feature_conf.set('CAIRO_HAS_COGL_SURFACE', 1)
+  deps += [cogl_dep]
+endif
+
+# Untested
+if directfb_dep.found()
+  feature_conf.set('CAIRO_HAS_DIRECTFB_SURFACE', 1)
+  deps += [directfb_dep]
+endif
+
+# Untested
+if cc.has_header('VG/openvg.h')
+  extra_link_args += ['-lOpenVG']
+  feature_conf.set('CAIRO_HAS_VG_SURFACE', 1)
+endif
+
+if zlib_dep.found()
+  feature_conf.set('CAIRO_HAS_SCRIPT_SURFACE', 1)
+endif
+
+if zlib_dep.found()
+  feature_conf.set('CAIRO_HAS_PS_SURFACE', 1)
+endif
+
+if zlib_dep.found()
+  feature_conf.set('CAIRO_HAS_PDF_SURFACE', 1)
+endif
+
+if png_dep.found()
+  feature_conf.set('CAIRO_HAS_SVG_SURFACE', 1)
+endif
+
+if zlib_dep.found()
+  feature_conf.set('CAIRO_HAS_INTERPRETER', 1)
 endif
 
 feature_conf.set('CAIRO_FEATURES_H', true)
@@ -240,6 +401,8 @@ foreach thread_flags : check_thread_flags
   endif
 endforeach
 
+extra_link_args += pthread_link_args
+
 if cc.links(files('meson-cc-tests/atomic-ops-cxx11.c'), name: 'Atomic ops: cxx11')
   conf.set('HAVE_CXX11_ATOMIC_PRIMITIVES', 1)
 elif cc.links(files('meson-cc-tests/atomic-ops-gcc-legacy.c'), name: 'Atomic ops: gcc legacy')
@@ -272,6 +435,7 @@ if not ['x86', 'x86_64'].contains(host_machine.cpu_family())
 endif
 
 subdir('src')
+subdir('util')
 
 if feature_conf.get('CAIRO_HAS_PNG_FUNCTIONS', 0) == 1
   subdir('boilerplate')
