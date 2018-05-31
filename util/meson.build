@@ -42,7 +42,7 @@ if gtk_dep.found()
 endif
 
 if feature_conf.get('CAIRO_HAS_INTERPRETER', 0) == 1
-  expat_dep = dependency('expat')
+  expat_dep = dependency('expat', fallback: ['expat', 'expat_dep'])
   cairo_utils += [
     ['trace-to-xml.c', {'deps': [expat_dep]}],
     ['xml-to-trace.c', {'deps': [expat_dep]}],
@@ -55,10 +55,13 @@ foreach util : cairo_utils
   executable(exe_name, util[0],
     include_directories: [incbase, incsrc, inccairoscript],
     dependencies: util_deps,
-    link_with: [libcairoscript],
+    link_with: [libcairo, libcairoscript],
   )
 endforeach
 
-libmallocstats = library('malloc-stats', 'malloc-stats.c')
+# This is useless and doesn't build on Windows
+if host_machine.system() != 'windows'
+  libmallocstats = library('malloc-stats', 'malloc-stats.c')
+endif
 
 # backtrace-symbols does not build
