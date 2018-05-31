@@ -233,7 +233,7 @@ if cc.has_header('ApplicationServices/ApplicationServices.h')
 endif
 
 if host_machine.system() == 'windows'
-  feature_conf.set('CAIRO_HAS_WIN32_SURFACE')
+  feature_conf.set('CAIRO_HAS_WIN32_SURFACE', 1)
   extra_link_args += ['lgdi32', '-lmsimg32']
 endif
 
