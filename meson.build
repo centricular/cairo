@@ -1,4 +1,6 @@
-project('cairo', 'c', 'cpp')
+project('cairo', 'c', 'cpp',
+  meson_version: '> 0.46.99',
+)
 
 cc = meson.get_compiler('c')
 python3 = import('python').find_installation()
