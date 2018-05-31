@@ -96,6 +96,33 @@ endif
 
 feature_conf = configuration_data()
 
+zlib_dep = dependency('zlib',
+  required: false,
+  fallback : ['zlib', 'zlib_dep'],
+)
+if zlib_dep.found()
+  if zlib_dep.type_name() == 'internal'
+    internal_deps += [zlib_dep]
+  else
+    deps += [zlib_dep]
+  endif
+  conf.set('HAVE_ZLIB', 1)
+endif
+
+png_dep = dependency('libpng',
+  required: false,
+  fallback: ['libpng', 'png_dep']
+)
+if png_dep.found()
+  feature_conf.set('CAIRO_HAS_SVG_SURFACE', 1)
+  feature_conf.set('CAIRO_HAS_PNG_FUNCTIONS', 1)
+  if png_dep.type_name() == 'internal'
+    internal_deps += [png_dep]
+  else
+    deps += [png_dep]
+  endif
+endif
+
 freetype_dep = dependency('freetype2',
   required: false,
   version: '>= 9.7.3',
@@ -234,7 +261,10 @@ endif
 
 if host_machine.system() == 'windows'
   feature_conf.set('CAIRO_HAS_WIN32_SURFACE', 1)
-  extra_link_args += ['lgdi32', '-lmsimg32']
+  deps += [
+    cc.find_library('gdi32'),
+    cc.find_library('msimg32'),
+  ]
 endif
 
 if feature_conf.get('CAIRO_HAS_WIN32_SURFACE', 0) == 1
@@ -264,7 +294,7 @@ if not gl_dep.found()
     extra_link_args += ['-lGL']
     use_gl = true
   endif
-else
+elif cc.has_header('GL/gl.h', dependencies: gl_dep) and cc.has_header('GL/glext.h', dependencies: gl_dep)
   use_gl = true
   deps += [gl_dep]
 endif
@@ -392,20 +422,6 @@ if gobject_dep.found() and glib_dep.found()
   feature_conf.set('CAIRO_HAS_GOBJECT_FUNCTIONS', 1)
 endif
 
-zlib_dep = dependency('zlib',
-  required: false,
-  fallback : ['zlib', 'zlib_dep'],
-)
-
-if zlib_dep.found()
-  if zlib_dep.type_name() == 'internal'
-    internal_deps += [zlib_dep]
-  else
-    deps += [zlib_dep]
-  endif
-  conf.set('HAVE_ZLIB', 1)
-endif
-
 if zlib_dep.found()
   feature_conf.set('CAIRO_HAS_SCRIPT_SURFACE', 1)
 endif
@@ -416,20 +432,6 @@ endif
 
 if zlib_dep.found()
   feature_conf.set('CAIRO_HAS_PDF_SURFACE', 1)
-endif
-
-png_dep = dependency('libpng',
-  required: false,
-  fallback: ['libpng', 'png_dep']
-)
-if png_dep.found()
-  feature_conf.set('CAIRO_HAS_SVG_SURFACE', 1)
-  feature_conf.set('CAIRO_HAS_PNG_FUNCTIONS', 1)
-  if png_dep.type_name() == 'internal'
-    internal_deps += [png_dep]
-  else
-    deps += [png_dep]
-  endif
 endif
 
 if zlib_dep.found()
