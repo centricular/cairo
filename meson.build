@@ -68,31 +68,23 @@ check_thread_flags = [
   [['-D_REENTRANT'], [], {'real': false}],
 ]
 
-pixman_dep = dependency('pixman-1')
-m_dep = cc.find_library('libm')
-png_dep = cc.find_library('libpng')
-fontconfig_dep = dependency('fontconfig')
-freetype_dep = dependency('freetype2')
-zlib_dep = dependency('zlib', required: false)
-lzo_dep = dependency('lzo2', required: false)
-dl_dep = cc.find_library('dl', required: false)
+m_dep = cc.find_library('libm', required: false)
+# Used in util
 gtk_dep = dependency('gtk+-2.0', required: false)
 
-deps = [pixman_dep, m_dep, png_dep]
+deps = [m_dep]
+internal_deps = []
 extra_link_args = []
 
 conf = configuration_data()
 
-if zlib_dep.found()
-  deps += [zlib_dep]
-  conf.set('HAVE_ZLIB', 1)
-endif
-
+lzo_dep = dependency('lzo2', required: false)
 if lzo_dep.found()
   deps += [lzo_dep]
   conf.set('HAVE_LZO', 1)
 endif
 
+dl_dep = cc.find_library('dl', required: false)
 if dl_dep.found() and cc.has_function('dlsym', dependencies: [dl_dep])
   deps += [dl_dep]
   conf.set('CAIRO_HAS_DLSYM', 1)
@@ -104,9 +96,14 @@ endif
 
 feature_conf = configuration_data()
 
+freetype_dep = dependency('freetype2',
+  required: false,
+  version: '>= 9.7.3',
+  fallback: ['freetype2', 'freetype_dep'],
+)
 if freetype_dep.found()
   feature_conf.set('CAIRO_HAS_FT_FONT', 1)
-  check_funcs += [
+  ft_check_funcs = [
     'FT_Get_X11_Font_Format',
     'FT_GlyphSlot_Embolden',
     'FT_GlyphSlot_Oblique',
@@ -116,21 +113,42 @@ if freetype_dep.found()
     'FT_Done_MM_Var',
   ]
 
-  if not cc.links(files('meson-cc-tests/ft_has_color.c'), dependencies: freetype_dep, name: 'FT has color')
-    conf.set('FT_HAS_COLOR', '(0)')
+  if freetype_dep.type_name() == 'internal'
+    foreach func : ft_check_funcs
+      conf.set('HAVE_@0@'.format(func.to_upper()), 1)
+    endforeach
+    internal_deps += [freetype_dep]
+  else
+    if not cc.links(files('meson-cc-tests/ft_has_color.c'), dependencies: freetype_dep, name: 'FT has color')
+      conf.set('FT_HAS_COLOR', '(0)')
+    endif
+    check_funcs += ft_check_funcs
+    deps += [freetype_dep]
   endif
-
-  deps += [freetype_dep]
 endif
 
+fontconfig_dep = dependency('fontconfig',
+  required: false,
+  version: '>= 2.2.95',
+  fallback: ['fontconfig', 'fontconfig_dep'],
+)
 if fontconfig_dep.found()
   feature_conf.set('CAIRO_HAS_FC_FONT', 1)
-  check_funcs += [
+  feature_conf.set('CAIRO_HAS_FC_FONT', 1)
+  fc_check_funcs = [
     'FcInit',
     'FcFini'
   ]
 
-  deps += [fontconfig_dep]
+  if fontconfig_dep.type_name() == 'internal'
+    foreach func : fc_check_funcs
+      conf.set('HAVE_@0@'.format(func.to_upper()), 1)
+    endforeach
+    internal_deps += [fontconfig_dep]
+  else
+    check_funcs += fc_check_funcs
+    deps += [fontconfig_dep]
+  endif
 endif
 
 x11_dep = dependency('x11', required: false)
@@ -361,10 +379,31 @@ if need_wgl_functions
   endif
 endif
 
-gobject_dep = dependency('gobject-2.0', required: false)
-glib_dep = dependency('glib-2.0', required: false, version: '>= 2.14')
+gobject_dep = dependency('gobject-2.0',
+  required: false,
+  fallback: ['glib', 'libgobject_dep']
+)
+glib_dep = dependency('glib-2.0',
+  required: false,
+  version: '>= 2.14',
+  fallback: ['glib', 'libglib_dep'],
+)
 if gobject_dep.found() and glib_dep.found()
   feature_conf.set('CAIRO_HAS_GOBJECT_FUNCTIONS', 1)
+endif
+
+zlib_dep = dependency('zlib',
+  required: false,
+  fallback : ['zlib', 'zlib_dep'],
+)
+
+if zlib_dep.found()
+  if zlib_dep.type_name() == 'internal'
+    internal_deps += [zlib_dep]
+  else
+    deps += [zlib_dep]
+  endif
+  conf.set('HAVE_ZLIB', 1)
 endif
 
 if zlib_dep.found()
@@ -379,8 +418,18 @@ if zlib_dep.found()
   feature_conf.set('CAIRO_HAS_PDF_SURFACE', 1)
 endif
 
+png_dep = dependency('libpng',
+  required: false,
+  fallback: ['libpng', 'png_dep']
+)
 if png_dep.found()
   feature_conf.set('CAIRO_HAS_SVG_SURFACE', 1)
+  feature_conf.set('CAIRO_HAS_PNG_FUNCTIONS', 1)
+  if png_dep.type_name() == 'internal'
+    internal_deps += [png_dep]
+  else
+    deps += [png_dep]
+  endif
 endif
 
 if zlib_dep.found()
@@ -434,11 +483,23 @@ if feature_conf.get('CAIRO_HAS_SVG_SURFACE', 0) == 1
   endif
 endif
 
+pixman_dep = dependency('pixman-1',
+  required: false,
+  version: '>= 0.30.0',
+  fallback: ['pixman', 'pixman_dep'],
+)
+if pixman_dep.found()
+  feature_conf.set('CAIRO_HAS_IMAGE_SURFACE', 1)
+  conf.set('HAS_PIXMAN_GLYPHS', 1)
+  if pixman_dep.type_name() == 'internal'
+    internal_deps += [pixman_dep]
+  else
+    deps += [pixman_dep]
+  endif
+endif
+
 feature_conf.set('CAIRO_FEATURES_H', true)
-feature_conf.set10('CAIRO_HAS_PNG_FUNCTIONS', png_dep.found())
-feature_conf.set10('CAIRO_HAS_FC_FONT', fontconfig_dep.found())
 feature_conf.set('CAIRO_HAS_USER_FONT', 1)
-feature_conf.set('CAIRO_HAS_IMAGE_SURFACE', 1)
 
 feature_conf.set('CAIRO_HAS_MIME_SURFACE', 1)
 feature_conf.set('CAIRO_HAS_RECORDING_SURFACE', 1)
@@ -555,6 +616,9 @@ have_shm = false
 if rt_dep.found() and cc.has_function('shm_open', dependencies: [rt_dep])
   have_shm = true
 endif
+
+# This to make sure we don't run checks against internal deps
+deps += internal_deps
 
 subdir('src')
 
