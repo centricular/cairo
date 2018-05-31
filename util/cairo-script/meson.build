@@ -33,12 +33,14 @@ csi_replay_exe = executable('csi-replay', csi_replay_sources,
   c_args: ['-DHAVE_CONFIG_H'],
   include_directories: [incbase, incsrc],
   link_with: [libcairo, libcairoscript],
+  dependencies: deps,
 )
 
 csi_exec_exe = executable('csi-exec', csi_exec_sources,
   c_args: ['-DHAVE_CONFIG_H'],
   include_directories: [incbase, incsrc],
   link_with: [libcairo, libcairoscript],
+  dependencies: deps,
 )
 
 if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1 and conf.get('HAVE_LIBGEN_H', 0) == 1
@@ -46,5 +48,6 @@ if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1 and conf.get('HAVE_LIBGE
     c_args: ['-DHAVE_CONFIG_H'],
     include_directories: [incbase, incsrc],
     link_with: [libcairo, libcairoscript],
+    dependencies: deps,
   )
 endif

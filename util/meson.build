@@ -54,7 +54,7 @@ foreach util : cairo_utils
   util_deps = util.get(1, {}).get('deps', [])
   executable(exe_name, util[0],
     include_directories: [incbase, incsrc, inccairoscript],
-    dependencies: util_deps,
+    dependencies: deps + util_deps,
     link_with: [libcairo, libcairoscript],
   )
 endforeach
