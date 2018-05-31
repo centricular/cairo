@@ -22,7 +22,7 @@ csi_trace_sources = [
 
 inccairoscript = include_directories('.')
 
-libcairoscript = static_library('cairo-script', cairoscript_interpreter_sources,
+libcairoscript = library('cairo-script', cairoscript_interpreter_sources,
   c_args: ['-DHAVE_CONFIG_H'],
   include_directories: [incbase, incsrc],
   dependencies: deps,
@@ -32,19 +32,19 @@ libcairoscript = static_library('cairo-script', cairoscript_interpreter_sources,
 csi_replay_exe = executable('csi-replay', csi_replay_sources,
   c_args: ['-DHAVE_CONFIG_H'],
   include_directories: [incbase, incsrc],
-  link_with: [libcairoscript],
+  link_with: [libcairo, libcairoscript],
 )
 
 csi_exec_exe = executable('csi-exec', csi_exec_sources,
   c_args: ['-DHAVE_CONFIG_H'],
   include_directories: [incbase, incsrc],
-  link_with: [libcairoscript],
+  link_with: [libcairo, libcairoscript],
 )
 
-if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1
+if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1 and conf.get('HAVE_LIBGEN_H', 0) == 1
   csi_trace_exe = executable('csi-trace', csi_trace_sources,
     c_args: ['-DHAVE_CONFIG_H'],
     include_directories: [incbase, incsrc],
-    link_with: [libcairoscript],
+    link_with: [libcairo, libcairoscript],
   )
 endif
