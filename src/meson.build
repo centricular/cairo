@@ -117,160 +117,167 @@ cairo_sources = [
   'cairo-deflate-stream.c',
 ]
 
-cairo_png_sources = [
-  'cairo-png.c',
+cairo_headers = [
+  'cairo.h',
+  'cairo-deprecated.h',
 ]
 
-cairo_ft_sources = [
-  'cairo-ft-font.c',
-]
+cairo_feature_sources = {
+  'cairo-png': [
+    'cairo-png.c',
+  ],
+  'cairo-ft': [
+    'cairo-ft-font.c',
+  ],
 
-cairo_xlib_sources = [
-  'cairo-xlib-display.c',
-  'cairo-xlib-core-compositor.c',
-  'cairo-xlib-fallback-compositor.c',
-  'cairo-xlib-render-compositor.c',
-  'cairo-xlib-screen.c',
-  'cairo-xlib-source.c',
-  'cairo-xlib-surface.c',
-  'cairo-xlib-surface-shm.c',
-  'cairo-xlib-visual.c',
-  'cairo-xlib-xcb-surface.c',
-]
+  'cairo-xlib': [
+    'cairo-xlib-display.c',
+    'cairo-xlib-core-compositor.c',
+    'cairo-xlib-fallback-compositor.c',
+    'cairo-xlib-render-compositor.c',
+    'cairo-xlib-screen.c',
+    'cairo-xlib-source.c',
+    'cairo-xlib-surface.c',
+    'cairo-xlib-surface-shm.c',
+    'cairo-xlib-visual.c',
+    'cairo-xlib-xcb-surface.c',
+  ],
+  'cairo-xcb': [
+    'cairo-xcb-connection.c',
+    'cairo-xcb-connection-core.c',
+    'cairo-xcb-connection-render.c',
+    'cairo-xcb-connection-shm.c',
+    'cairo-xcb-screen.c',
+    'cairo-xcb-shm.c',
+    'cairo-xcb-surface.c',
+    'cairo-xcb-surface-core.c',
+    'cairo-xcb-surface-render.c',
+    'cairo-xcb-resources.c',
+  ],
+  'cairo-qt': [
+    'cairo-qt-surface.cpp',
+  ],
+  'cairo-quartz': [
+    'cairo-quartz-surface.c',
+  ],
+  'cairo-quartz-image': [
+    'cairo-quartz-image-surface.c',
+  ],
+  'cairo-quartz-font': [
+    'cairo-quartz-font.c',
+  ],
+  'cairo-win32': [
+    'win32/cairo-win32-debug.c',
+    'win32/cairo-win32-device.c',
+    'win32/cairo-win32-gdi-compositor.c',
+    'win32/cairo-win32-system.c',
+    'win32/cairo-win32-surface.c',
+    'win32/cairo-win32-display-surface.c',
+    'win32/cairo-win32-printing-surface.c',
+  ],
+  'cairo-win32-font': [
+    'win32/cairo-win32-font.c',
+  ],
+  'cairo-drm': [
+    'drm/cairo-drm.c',
+    'drm/cairo-drm-bo.c',
+    'drm/cairo-drm-surface.c',
+    'drm/cairo-drm-intel.c',
+    'drm/cairo-drm-intel-debug.c',
+    'drm/cairo-drm-intel-surface.c',
+    'drm/cairo-drm-i915-surface.c',
+    'drm/cairo-drm-i915-glyphs.c',
+    'drm/cairo-drm-i915-shader.c',
+    'drm/cairo-drm-i915-spans.c',
+    'drm/cairo-drm-i965-surface.c',
+    'drm/cairo-drm-i965-glyphs.c',
+    'drm/cairo-drm-i965-shader.c',
+    'drm/cairo-drm-i965-spans.c',
+    'drm/cairo-drm-intel-brw-eu.c',
+    'drm/cairo-drm-intel-brw-eu-emit.c',
+    'drm/cairo-drm-intel-brw-eu-util.c',
+    'drm/cairo-drm-radeon.c',
+    'drm/cairo-drm-radeon-surface.c',
+  ],
+  'cairo-gl': [
+    'cairo-gl-composite.c',
+    'cairo-gl-device.c',
+    'cairo-gl-dispatch.c',
+    'cairo-gl-glyphs.c',
+    'cairo-gl-gradient.c',
+    'cairo-gl-info.c',
+    'cairo-gl-msaa-compositor.c',
+    'cairo-gl-operand.c',
+    'cairo-gl-shaders.c',
+    'cairo-gl-source.c',
+    'cairo-gl-spans-compositor.c',
+    'cairo-gl-surface.c',
+    'cairo-gl-traps-compositor.c',
+  ],
+  'cairo-cogl': [
+    'cairo-cogl-surface.c',
+    'cairo-cogl-gradient.c',
+    'cairo-cogl-context.c',
+    'cairo-cogl-utils.c',
+  ],
+  'cairo-directfb': [
+    'cairo-directfb-surface.c',
+  ],
+  'cairo-vg': [
+    'cairo-vg-surface.c',
+  ],
+  'cairo-script': [
+    'cairo-script-surface.c',
+  ],
+  'cairo-ps': [
+    'cairo-ps-surface.c',
+  ],
+  'cairo-pdf': [
+    'cairo-pdf-surface.c',
+    'cairo-pdf-interchange.c',
+    'cairo-tag-stack.c',
+  ],
+  'cairo-svg': [
+    'cairo-svg-surface.c',
+  ],
+  'cairo-egl': [
+    'cairo-egl-context.c',
+  ],
+  'cairo-glx': [
+    'cairo-glx-context.c',
+  ],
+  'cairo-wgl': [
+    'cairo-wgl-context.c',
+  ],
+  'cairo-xml': [
+    'cairo-xml-surface.c',
+  ],
+  'cairo-tee': [
+    'cairo-tee-surface.c',
+  ],
+}
 
-cairo_xcb_sources = [
-  'cairo-xcb-connection.c',
-  'cairo-xcb-connection-core.c',
-  'cairo-xcb-connection-render.c',
-  'cairo-xcb-connection-shm.c',
-  'cairo-xcb-screen.c',
-  'cairo-xcb-shm.c',
-  'cairo-xcb-surface.c',
-  'cairo-xcb-surface-core.c',
-  'cairo-xcb-surface-render.c',
-  'cairo-xcb-resources.c',
-]
-
-cairo_qt_sources = [
-  'cairo-qt-surface.cpp',
-]
-
-cairo_quartz_sources = [
-  'cairo-quartz-surface.c',
-]
-
-cairo_quartz_image_sources = [
-  'cairo-quartz-image-surface.c',
-]
-
-cairo_quartz_font_sources = [
-  'cairo-quartz-font.c',
-]
-
-cairo_win32_sources = [
-  'win32/cairo-win32-debug.c',
-  'win32/cairo-win32-device.c',
-  'win32/cairo-win32-gdi-compositor.c',
-  'win32/cairo-win32-system.c',
-  'win32/cairo-win32-surface.c',
-  'win32/cairo-win32-display-surface.c',
-  'win32/cairo-win32-printing-surface.c',
-]
-
-cairo_win32_font_sources = [
-  'win32/cairo-win32-font.c',
-]
-
-cairo_drm_sources = [
-  'drm/cairo-drm.c',
-  'drm/cairo-drm-bo.c',
-  'drm/cairo-drm-surface.c',
-  'drm/cairo-drm-intel.c',
-  'drm/cairo-drm-intel-debug.c',
-  'drm/cairo-drm-intel-surface.c',
-  'drm/cairo-drm-i915-surface.c',
-  'drm/cairo-drm-i915-glyphs.c',
-  'drm/cairo-drm-i915-shader.c',
-  'drm/cairo-drm-i915-spans.c',
-  'drm/cairo-drm-i965-surface.c',
-  'drm/cairo-drm-i965-glyphs.c',
-  'drm/cairo-drm-i965-shader.c',
-  'drm/cairo-drm-i965-spans.c',
-  'drm/cairo-drm-intel-brw-eu.c',
-  'drm/cairo-drm-intel-brw-eu-emit.c',
-  'drm/cairo-drm-intel-brw-eu-util.c',
-  'drm/cairo-drm-radeon.c',
-  'drm/cairo-drm-radeon-surface.c',
-]
-
-cairo_gl_sources = [
-  'cairo-gl-composite.c',
-  'cairo-gl-device.c',
-  'cairo-gl-dispatch.c',
-  'cairo-gl-glyphs.c',
-  'cairo-gl-gradient.c',
-  'cairo-gl-info.c',
-  'cairo-gl-msaa-compositor.c',
-  'cairo-gl-operand.c',
-  'cairo-gl-shaders.c',
-  'cairo-gl-source.c',
-  'cairo-gl-spans-compositor.c',
-  'cairo-gl-surface.c',
-  'cairo-gl-traps-compositor.c',
-]
-
-cairo_cogl_sources = [
-  'cairo-cogl-surface.c',
-  'cairo-cogl-gradient.c',
-  'cairo-cogl-context.c',
-  'cairo-cogl-utils.c',
-]
-
-cairo_directfb_sources = [
-  'cairo-directfb-surface.c',
-]
-
-cairo_vg_sources = [
-  'cairo-vg-surface.c',
-]
-
-cairo_script_sources = [
-  'cairo-script-surface.c',
-]
-
-cairo_ps_sources = [
-  'cairo-ps-surface.c',
-]
-
-cairo_pdf_sources = [
-  'cairo-pdf-surface.c',
-  'cairo-pdf-interchange.c',
-  'cairo-tag-stack.c',
-]
-
-cairo_svg_sources = [
-  'cairo-svg-surface.c',
-]
-
-cairo_egl_sources = [
-  'cairo-egl-context.c',
-]
-
-cairo_glx_sources = [
-  'cairo-glx-context.c',
-]
-
-cairo_wgl_sources = [
-  'cairo-wgl-context.c',
-]
-
-cairo_xml_sources = [
-  'cairo-xml-surface.c',
-]
-
-cairo_tee_sources = [
-  'cairo-tee-surface.c',
-]
+cairo_feature_headers = {
+  'cairo-ps': ['cairo-ps.h'],
+  'cairo-pdf': ['cairo-pdf.h'],
+  'cairo-svg': ['cairo-svg.h'],
+  'cairo-ft': ['cairo-ft.h'],
+  'cairo-xlib': ['cairo-xlib.h'],
+  'cairo-xlib-xrender': ['cairo-xlib-xrender.h'],
+  'cairo-xcb': ['cairo-xcb.h'],
+  'cairo-qt': ['cairo-qt.h'],
+  'cairo-quartz': ['cairo-quartz.h'],
+  'cairo-quartz-image': ['cairo-quartz-image.h'],
+  'cairo-win32': ['cairo-win32.h'],
+  'cairo-gl': ['cairo-gl.h'],
+  'cairo-directfb': ['cairo-directfb.h'],
+  'cairo-drm': ['cairo-drm.h'],
+  'cairo-script': ['cairo-script.h'],
+  'cairo-tee': ['cairo-tee.h'],
+  'cairo-xml': ['cairo-xml.h'],
+  'cairo-vg': ['cairo-vg.h'],
+  'cairo-cogl': ['cairo-cogl.h'],
+}
 
 cairo_no_warn_c_args = cc.get_supported_arguments([
   '-Wno-attributes',
@@ -280,110 +287,30 @@ cairo_no_warn_c_args = cc.get_supported_arguments([
   '-Wno-long-long',
 ])
 
+foreach feature: built_features
+  source_key = feature.get('source-key', feature.get('name'))
+  cairo_sources += cairo_feature_sources.get(source_key, [])
+  cairo_headers += cairo_feature_headers.get(source_key, [])
+endforeach
+
 incsrc = include_directories('.')
-
-if feature_conf.get('CAIRO_HAS_PNG_FUNCTIONS', 0) == 1
-  cairo_sources += cairo_png_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_FT_FONT', 0) == 1
-  cairo_sources += cairo_ft_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_XLIB_SURFACE', 0) == 1
-  cairo_sources += cairo_xlib_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_XCB_SURFACE', 0) == 1
-  cairo_sources += cairo_xcb_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_QT_SURFACE', 0) == 1
-  cairo_sources += cairo_qt_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_QUARTZ_SURFACE', 0) == 1
-  cairo_sources += cairo_quartz_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_QUARTZ_IMAGE_SURFACE', 0) == 1
-  cairo_sources += cairo_quartz_image_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_QUARTZ_FONT', 0) == 1
-  cairo_sources += cairo_quartz_font_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_WIN32_SURFACE', 0) == 1
-  cairo_sources += cairo_win32_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_WIN32_FONT', 0) == 1
-  cairo_sources += cairo_win32_font_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_DRM_SURFACE', 0) == 1
-  cairo_sources += cairo_drm_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 1 or feature_conf.get('CAIRO_HAS_GLESV2_SURFACE', 0) == 1 or feature_conf.get('CAIRO_HAS_GLESV3_SURFACE', 0) == 1
-  cairo_sources += cairo_gl_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_COGL_SURFACE', 0) == 1
-  cairo_sources += cairo_cogl_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_DIRECTFB_SURFACE', 0) == 1
-  cairo_sources += cairo_directfb_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_VG_SURFACE', 0) == 1
-  cairo_sources += cairo_vg_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1
-  cairo_sources += cairo_script_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_PS_SURFACE', 0) == 1
-  cairo_sources += cairo_ps_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_PDF_SURFACE', 0) == 1
-  cairo_sources += cairo_pdf_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_SVG_SURFACE', 0) == 1
-  cairo_sources += cairo_svg_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_EGL_FUNCTIONS', 0) == 1
-  cairo_sources += cairo_egl_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_GLX_FUNCTIONS', 0) == 1
-  cairo_sources += cairo_glx_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_WGL_FUNCTIONS', 0) == 1
-  cairo_sources += cairo_wgl_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_XML_SURFACE', 0) == 1
-  cairo_sources += cairo_xml_sources
-endif
-
-if feature_conf.get('CAIRO_HAS_TEE_SURFACE', 0) == 1
-  cairo_sources += cairo_tee_sources
-endif
 
 libcairo = library('cairo', cairo_sources,
   dependencies: deps,
   c_args: cairo_no_warn_c_args + pthread_c_args + ['-DHAVE_CONFIG_H'],
   cpp_args: cairo_no_warn_c_args + pthread_c_args + ['-DHAVE_CONFIG_H'],
   link_args: extra_link_args,
+  soversion: '2',
+  version: '2.' + ''.join(meson.project_version().split('.')) + '.0',
+  install: true,
   include_directories: incbase,
 )
 
-configure_file(output: 'cairo-features.h', configuration: feature_conf)
+cairo_headers += [configure_file(output: 'cairo-features.h', configuration: feature_conf)]
+
+pkgmod.generate(libcairo,
+  description: 'Multi-platform 2D graphics library',
+  version: meson.project_version(),
+)
+
+install_headers(cairo_headers, subdir: 'cairo')
