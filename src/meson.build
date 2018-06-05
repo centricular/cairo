@@ -310,6 +310,7 @@ cairo_headers += [configure_file(output: 'cairo-features.h', configuration: feat
 
 pkgmod.generate(libcairo,
   description: 'Multi-platform 2D graphics library',
+  subdirs: [meson.project_name()],
   version: meson.project_version(),
 )
 
