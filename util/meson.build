@@ -3,7 +3,6 @@ subdir('cairo-missing')
 cairo_utils = [
 ]
 
-
 if feature_conf.get('CAIRO_HAS_GOBJECT_FUNCTIONS', 0) == 1
   subdir('cairo-gobject')
 endif

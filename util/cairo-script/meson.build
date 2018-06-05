@@ -8,6 +8,10 @@ cairoscript_interpreter_sources = [
   'cairo-script-stack.c',
 ]
 
+cairoscript_interpreter_headers = [
+  'cairo-script-interpreter.h',
+]
+
 csi_replay_sources = [
   'csi-replay.c',
 ]
@@ -27,6 +31,9 @@ libcairoscript = library('cairo-script', cairoscript_interpreter_sources,
   include_directories: [incbase, incsrc],
   dependencies: deps,
   link_with: [libcairo],
+  soversion: '2',
+  version: '2.' + ''.join(meson.project_version().split('.')) + '.0',
+  install: true,
 )
 
 csi_replay_exe = executable('csi-replay', csi_replay_sources,
@@ -51,3 +58,5 @@ if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1 and conf.get('HAVE_LIBGE
     dependencies: deps,
   )
 endif
+
+install_headers(cairoscript_interpreter_headers, subdir: 'cairo')

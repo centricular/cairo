@@ -4,71 +4,30 @@ cairo_boilerplate_sources = [
   'cairo-boilerplate.c',
 ]
 
-if feature_conf.get('CAIRO_HAS_XLIB_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-xlib.c']
-endif
+cairo_boilerplate_feature_sources = {
+  'cairo-xlib': ['cairo-boilerplate-xlib.c'],
+  'cairo-qt': ['cairo-boilerplate-qt.cpp'],
+  'cairo-quartz': ['cairo-boilerplate-quartz.c'],
+  'cairo-xcb': ['cairo-boilerplate-xcb.c'],
+  'cairo-win32': ['cairo-boilerplate-win32.c', 'cairo-boilerplate-win32-printing.c'],
+  'cairo-drm': ['cairo-boilerplate-drm.c'],
+  'cairo-cogl': ['cairo-boilerplate-cogl.c'],
+  'cairo-directfb': ['cairo-boilerplate-directfb.c'],
+  'cairo-pdf': ['cairo-boilerplate-pdf.c'],
+  'cairo-ps': ['cairo-boilerplate-ps.c'],
+  'cairo-svg': ['cairo-boilerplate-svg.c'],
+  'cairo-vg': ['cairo-boilerplate-vg.c'],
+  'cairo-script': ['cairo-boilerplate-script.c'],
+  # All tests crash with FPE
+  # 'cairo-egl': ['cairo-boilerplate-egl.c'],
+  # cairo-glx: ['cairo-boilerplate-glx.c'],
+  'cairo-wgl': ['cairo-boilerplate-wgl.c'],
+}
 
-if feature_conf.get('CAIRO_HAS_QT_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-qt.cpp']
-endif
-
-if feature_conf.get('CAIRO_HAS_QUARTZ_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-quartz.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_XCB_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-xcb.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_WIN32_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-win32.c', 'cairo-boilerplate-win32-printing.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_DRM_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-drm.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_COGL_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-cogl.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_DIRECTFB_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-directfb.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_PDF_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-pdf.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_PS_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-ps.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_SVG_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-svg.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_VG_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-vg.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-script.c']
-endif
-
-# All tests crash with FPE
-if feature_conf.get('CAIRO_HAS_EGL_FUNCTIONS', 0) == 1 and false
-  cairo_boilerplate_sources += ['cairo-boilerplate-egl.c']
-endif
-
-# All tests crash with FPE
-if feature_conf.get('CAIRO_HAS_GLX_FUNCTIONS', 0) == 1 and false
-  cairo_boilerplate_sources += ['cairo-boilerplate-glx.c']
-endif
-
-if feature_conf.get('CAIRO_HAS_WGL_FUNCTIONS', 0) == 1
-  cairo_boilerplate_sources += ['cairo-boilerplate-wgl.c']
-endif
+foreach feature: built_features
+  source_key = feature.get('source-key', feature.get('name'))
+  cairo_boilerplate_sources += cairo_boilerplate_feature_sources.get(source_key, [])
+endforeach
 
 incboilerplate = include_directories('.')
 
