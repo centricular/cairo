@@ -1,5 +1,5 @@
 project('cairo', 'c', 'cpp',
-  meson_version: '> 0.46.99',
+  meson_version: '>= 0.47.0',
   version: '1.15.12',
 )
 
