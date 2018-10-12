@@ -841,8 +841,11 @@ deps += internal_deps
 
 subdir('src')
 
+incboilerplate = include_directories('boilerplate')
 if feature_conf.get('CAIRO_HAS_PNG_FUNCTIONS', 0) == 1
   subdir('boilerplate')
+else
+  libcairoboilerplate = []
 endif
 
 subdir('util')
