@@ -315,3 +315,5 @@ pkgmod.generate(libcairo,
 )
 
 install_headers(cairo_headers, subdir: 'cairo')
+
+libcairo_dep = declare_dependency(link_with: libcairo, include_directories: incsrc)
