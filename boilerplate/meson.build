@@ -29,8 +29,6 @@ foreach feature: built_features
   cairo_boilerplate_sources += cairo_boilerplate_feature_sources.get(source_key, [])
 endforeach
 
-incboilerplate = include_directories('.')
-
 cairo_boilerplate_constructors = custom_target('cairo-boilerplate-constructors.c',
   input: files(cairo_boilerplate_sources),
   output: 'cairo-boilerplate-constructors.c',
