@@ -4,6 +4,15 @@ project('cairo', 'c', 'cpp',
 )
 
 cc = meson.get_compiler('c')
+
+if cc.get_id() == 'msvc'
+  # Basic usage in the cairo type system that causes spammy and useless warnings
+  add_project_arguments('/wd4244', '/wd4146',
+                        # Don't warn about double -> float truncation
+                        '/wd4305',
+                        language : 'c')
+endif
+
 pkgmod = import('pkgconfig')
 python3 = import('python').find_installation()
 
