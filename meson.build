@@ -620,6 +620,7 @@ if gobject_dep.found() and glib_dep.found()
     'name': 'cairo-gobject',
     'description': 'gobject functions',
     'requires': 'gobject-2.0 glib-2.0 @0@'.format(glib_required_version),
+    'libs': ['-lcairo-gobject'],
   }]
 endif
 
