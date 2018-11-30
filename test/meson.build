@@ -573,19 +573,19 @@ subdir('pdiff')
 
 if conf.get('CAIRO_CAN_TEST_PDF_SURFACE', 0) == 1
   exe = executable('pdf2png', pdf2png_sources,
-    dependencies: deps,
+    dependencies: deps + test_deps,
   )
 endif
 
 if conf.get('CAIRO_CAN_TEST_SVG_SURFACE', 0) == 1
   exe = executable('svg2png', svg2png_sources,
-    dependencies: deps,
+    dependencies: deps + test_deps,
   )
 endif
 
 if conf.get('CAIRO_HAS_SPECTRE', 0) == 1
   exe = executable('ps2png', ps2png_sources,
-    dependencies: deps,
+    dependencies: deps + test_deps,
   )
 endif
 
@@ -594,7 +594,7 @@ if build_any2ppm
     c_args: ['-DHAVE_CONFIG_H'],
     include_directories: [incbase, incsrc, inccairoscript],
     link_with: [libcairo, libcairoscript],
-    dependencies: deps,
+    dependencies: deps + test_deps,
   )
   test_depends += [any2ppm_exe]
 endif
@@ -605,14 +605,14 @@ if have_shm
   c_args: ['-DHAVE_CONFIG_H'] + pthread_c_args,
   link_with: [libcairo, libcairoboilerplate, libpdiff, libcairoscript, libcairomissing],
   link_args: extra_link_args,
-  dependencies: deps + [rt_dep])
+  dependencies: deps + test_deps + [rt_dep])
 endif
 
 exe = executable('cairo-test-suite', [cairo_test_suite_sources, test_sources, cairo_test_constructors],
   include_directories: [incbase, incsrc, incboilerplate, incpdiff],
   c_args: ['-DHAVE_CONFIG_H'],
   link_with: [libcairo, libcairoboilerplate, libpdiff],
-  dependencies: deps,
+  dependencies: deps + test_deps,
 )
 
 env = environment()
