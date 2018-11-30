@@ -1,5 +1,5 @@
 project('cairo', 'c', 'cpp',
-  meson_version: '>= 0.47.0',
+  meson_version: '>= 0.48.0',
   version: '1.15.12',
 )
 
@@ -83,9 +83,10 @@ check_thread_flags = [
 
 m_dep = cc.find_library('libm', required: false)
 # Used in util
-gtk_dep = dependency('gtk+-2.0', required: false)
+gtk_dep = dependency('gtk+-2.0', required: get_option('gtk2-utils'))
 
 deps = [m_dep]
+test_deps = []
 internal_deps = []
 extra_link_args = []
 
@@ -112,7 +113,7 @@ feature_conf = configuration_data()
 built_features = []
 
 zlib_dep = dependency('zlib',
-  required: false,
+  required: get_option('zlib'),
   fallback : ['zlib', 'zlib_dep'],
 )
 if zlib_dep.found()
@@ -125,7 +126,7 @@ if zlib_dep.found()
 endif
 
 png_dep = dependency('libpng',
-  required: false,
+  required: get_option('png'),
   fallback: ['libpng', 'png_dep']
 )
 if png_dep.found()
@@ -154,7 +155,7 @@ endif
 freetype_required_version = '>= 9.7.3'
 
 freetype_dep = dependency('freetype2',
-  required: false,
+  required: get_option('freetype'),
   version: freetype_required_version,
   fallback: ['freetype2', 'freetype_dep'],
 )
@@ -192,7 +193,7 @@ endif
 
 fontconfig_required_version = '>= 2.2.95'
 fontconfig_dep = dependency('fontconfig',
-  required: false,
+  required: get_option('fontconfig'),
   version: fontconfig_required_version,
   fallback: ['fontconfig', 'fontconfig_dep'],
 )
@@ -220,8 +221,8 @@ if fontconfig_dep.found()
   }]
 endif
 
-x11_dep = dependency('x11', required: false)
-xext_dep = dependency('xext', required: false)
+x11_dep = dependency('x11', required: get_option('xlib'))
+xext_dep = dependency('xext', required: get_option('xlib'))
 if x11_dep.found() and xext_dep.found()
   feature_conf.set('CAIRO_HAS_XLIB_SURFACE', 1)
   built_features += [{
@@ -248,7 +249,8 @@ endif
 
 if feature_conf.get('CAIRO_HAS_XLIB_SURFACE', 0) == 1
   xrender_required_version = '>= 0.6'
-  xrender_dep = dependency('xrender', required: false, version: xrender_required_version)
+  xrender_dep = dependency('xrender', required: get_option('xlib'),
+                           version: xrender_required_version)
 
   if xrender_dep.found()
     check_funcs += [
@@ -272,8 +274,10 @@ endif
 xcb_required_version = '>= 1.6'
 xcb_render_required_version = '>= 1.6'
 
-xcb_dep = dependency('xcb', required: false, version: xcb_required_version)
-xcb_render_dep = dependency('xcb-render', required: false, version: xcb_render_required_version)
+xcb_dep = dependency('xcb', required: get_option('xcb'),
+                     version: xcb_required_version)
+xcb_render_dep = dependency('xcb-render', required: get_option('xcb'),
+                            version: xcb_render_required_version)
 if xcb_dep.found() and xcb_render_dep.found()
   feature_conf.set('CAIRO_HAS_XCB_SURFACE', 1)
   built_features += [{
@@ -286,6 +290,7 @@ if xcb_dep.found() and xcb_render_dep.found()
 endif
 
 if feature_conf.get('CAIRO_HAS_XCB_SURFACE', 0) == 1 and feature_conf.get('CAIRO_HAS_XLIB_SURFACE', 0) == 1
+  # FIXME: automagic
   x11xcb_dep = dependency('x11-xcb', required: false)
   if x11xcb_dep.found()
     deps += [x11xcb_dep]
@@ -299,7 +304,7 @@ if feature_conf.get('CAIRO_HAS_XCB_SURFACE', 0) == 1 and feature_conf.get('CAIRO
 endif
 
 if feature_conf.get('CAIRO_HAS_XCB_SURFACE', 0) == 1
-  xcbshm_dep = dependency('xcb-shm', required: false)
+  xcbshm_dep = dependency('xcb-shm', required: get_option('xcb'))
   if xcbshm_dep.found()
     feature_conf.set('CAIRO_HAS_XCB_SHM_FUNCTIONS', 1)
     deps += [xcbshm_dep]
@@ -313,7 +318,8 @@ endif
 
 # Tests crash and burn
 qtgui_required_version = '>= 4.4.0'
-qtgui_dep = dependency('QtGui', required: false, version: qtgui_required_version)
+qtgui_dep = dependency('QtGui', required: get_option('qt'),
+                       version: qtgui_required_version)
 if qtgui_dep.found() and false
   feature_conf.set('CAIRO_HAS_QT_SURFACE', 1)
   built_features += [{
@@ -387,8 +393,10 @@ endif
 # Doesn't build since at least 2011
 libudev_required_version = '>= 136'
 libdrm_required_version = '>= 2.4'
-libudev_dep = dependency('libudev', required: false, version: libudev_required_version)
-libdrm_dep = dependency('libdrm', required: false, version: libdrm_required_version)
+libudev_dep = dependency('libudev', required: get_option('drm'),
+                         version: libudev_required_version)
+libdrm_dep = dependency('libdrm', required: get_option('drm'),
+                        version: libdrm_required_version)
 if libudev_dep.found() and libdrm_dep.found() and false
   deps += [libudev_dep, libdrm_dep]
 
@@ -405,24 +413,29 @@ endif
 # Not porting BEOS or OS/2 backends either, meson doesn't support those
 
 # GL / GLESV2 / GLESV3 are mutually exclusive
+gl_backend = get_option('gl-backend')
 use_gl = false
 need_egl_functions = false
 need_wgl_functions = false
 need_glx_functions = false
-gl_dep = dependency('gl', required: false)
-if not gl_dep.found()
-  if cc.has_header('GL/gl.h')
-    gl_extra_libs = ['-lGL']
-    gl_requires = ''
-    extra_link_args += gl_extra_libs
+
+if ['auto', 'gl'].contains(gl_backend)
+  gl_dep = dependency('gl', required: gl_backend == 'gl')
+  if not gl_dep.found()
+    if cc.has_header('GL/gl.h')
+      gl_extra_libs = ['-lGL']
+      gl_requires = ''
+      extra_link_args += gl_extra_libs
+      use_gl = true
+    endif
+  elif cc.has_header('GL/gl.h', dependencies: gl_dep) and cc.has_header('GL/glext.h', dependencies: gl_dep)
     use_gl = true
+    gl_extra_libs = []
+    gl_requires = 'gl'
+    deps += [gl_dep]
   endif
-elif cc.has_header('GL/gl.h', dependencies: gl_dep) and cc.has_header('GL/glext.h', dependencies: gl_dep)
-  use_gl = true
-  gl_extra_libs = []
-  gl_requires = 'gl'
-  deps += [gl_dep]
 endif
+
 
 if use_gl
   need_egl_functions = true
@@ -438,9 +451,9 @@ if use_gl
   }]
 endif
 
-if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0
+if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0 and ['auto', 'glesv2'].contains(gl_backend)
   use_glesv2 = false
-  glesv2_dep = dependency('glesv2', required: false)
+  glesv2_dep = dependency('glesv2', required: gl_backend == 'glesv2')
   if not glesv2_dep.found()
     if cc.has_header('GLES2/gl2.h')
       use_glesv2 = true
@@ -468,9 +481,9 @@ if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0
   endif
 endif
 
-if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0 and feature_conf.get('CAIRO_HAS_GLESV2_SURFACE', 0) == 0
+if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0 and feature_conf.get('CAIRO_HAS_GLESV2_SURFACE', 0) == 0 and ['auto', 'glesv3'].contains(gl_backend)
   use_glesv3 = false
-  glesv3_dep = dependency('glesv3', required: false)
+  glesv3_dep = dependency('glesv3', required: gl_backend == 'glesv3')
   if not glesv3_dep.found()
     if cc.has_header('GLES3/gl3.h')
       use_glesv3 = true
@@ -499,7 +512,7 @@ if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0 and feature_conf.get('CAIRO_
 endif
 
 # Broken for me, depends on experimental API
-cogl_dep = dependency('cogl-2.0-experimental', required: false)
+cogl_dep = dependency('cogl-2.0-experimental', required: get_option('cogl'))
 if cogl_dep.found() and false
   deps += [cogl_dep]
 
@@ -512,7 +525,7 @@ if cogl_dep.found() and false
 endif
 
 # Untested
-directfb_dep = dependency('directfb', required: false)
+directfb_dep = dependency('directfb', required: get_option('directfb'))
 if directfb_dep.found()
   deps += [directfb_dep]
 
@@ -525,21 +538,27 @@ if directfb_dep.found()
 endif
 
 # Untested
-if cc.has_header('VG/openvg.h')
-  openvg_extra_libs = ['-lOpenVG']
-  extra_link_args += openvg_extra_libs
-  need_egl_functions = true
-  need_glx_functions = true
+openvg_option = get_option('openvg')
+if not openvg_option.disabled()
+  if cc.has_header('VG/openvg.h')
+    openvg_extra_libs = ['-lOpenVG']
+    extra_link_args += openvg_extra_libs
+    need_egl_functions = true
+    need_glx_functions = true
 
-  feature_conf.set('CAIRO_HAS_VG_SURFACE', 1)
-  built_features += [{
-    'name': 'cairo-vg',
-    'description': 'OpenVG surface backend',
-    'libs': openvg_extra_libs,
-  }]
+    feature_conf.set('CAIRO_HAS_VG_SURFACE', 1)
+    built_features += [{
+      'name': 'cairo-vg',
+      'description': 'OpenVG surface backend',
+      'libs': openvg_extra_libs,
+    }]
+  elif openvg_option.enabled()
+    error('openvg surface backend enabled, but VG/openvg.h not found')
+  endif
 endif
 
 if need_egl_functions
+  # FIXME: automagic
   egl_dep = dependency('egl', required: false)
   use_egl = false
   egl_extra_libs = []
@@ -550,19 +569,19 @@ if need_egl_functions
       egl_extra_deps = []
       csi_dep = cc.find_library('csi', required: false)
       if csi_dep.found() and cc.has_function('csi_stream_attachresource', dependencies: [csi_dep])
-	egl_extra_deps = [csi_dep]
-	egl_extra_libs = ['-lcsi']
+        egl_extra_deps = [csi_dep]
+        egl_extra_libs = ['-lcsi']
       endif
 
       foreach libname : ['EGL', 'egl13', 'egl12', 'egl11']
-	if not use_egl
-	  dep = cc.find_library(libname, required: false)
-	  if dep.found() and cc.has_function('eglGetError', dependencies: [dep])
-	    deps += [dep] + egl_extra_deps
-	    egl_extra_libs += ['-l@0@'.format(libname)]
-	    use_egl = true
-	  endif
-	endif
+        if not use_egl
+          dep = cc.find_library(libname, required: false)
+          if dep.found() and cc.has_function('eglGetError', dependencies: [dep])
+            deps += [dep] + egl_extra_deps
+            egl_extra_libs += ['-l@0@'.format(libname)]
+            use_egl = true
+          endif
+        endif
       endforeach
     endif
   else
@@ -583,6 +602,7 @@ if need_egl_functions
 endif
 
 if need_glx_functions
+  # FIXME: automagic
   if cc.has_header('GL/glx.h')
     feature_conf.set('CAIRO_HAS_GLX_FUNCTIONS', 1)
     built_features += [{
@@ -595,6 +615,7 @@ endif
 
 # Untested
 if need_wgl_functions
+  # FIXME: automagic
   if cc.has_header('windows.h')
     feature_conf.set('CAIRO_HAS_WGL_FUNCTIONS', 1)
     built_features += [{
@@ -605,12 +626,12 @@ if need_wgl_functions
 endif
 
 gobject_dep = dependency('gobject-2.0',
-  required: false,
+  required: get_option('glib'),
   fallback: ['glib', 'libgobject_dep']
 )
 glib_required_version = '>= 2.14'
 glib_dep = dependency('glib-2.0',
-  required: false,
+  required: get_option('glib'),
   version: glib_required_version,
   fallback: ['glib', 'libglib_dep'],
 )
@@ -665,6 +686,7 @@ if zlib_dep.found()
 endif
 
 # Untested, libiberty.h is in a libiberty subfolder for me
+# FIXME: automagic
 bfd_dep = cc.find_library('bfd', required: false)
 if bfd_dep.found() and cc.has_function('bfd_openr', dependencies: [bfd_dep])
   if cc.has_header('libiberty.h')
@@ -679,8 +701,9 @@ if conf.get('HAVE_BFD', 0) == 1
 endif
 
 if feature_conf.get('CAIRO_HAS_PS_SURFACE', 0) == 1
-  gs = find_program('gs', required: false)
-  libspectre_dep = dependency('libspectre', required: false, version: '>= 0.2.0')
+  gs = find_program('gs', required: get_option('tests'))
+  libspectre_dep = dependency('libspectre', version: '>= 0.2.0',
+                              required: get_option('spectre'))
   if gs.found() and libspectre_dep.found()
     conf.set('CAIRO_CAN_TEST_PS_SURFACE', 1)
   endif
@@ -692,23 +715,26 @@ if feature_conf.get('CAIRO_HAS_PS_SURFACE', 0) == 1
 endif
 
 if feature_conf.get('CAIRO_HAS_PDF_SURFACE', 0) == 1
-  poppler_dep = dependency('poppler-glib', required: false, version: '>= 0.17.4')
+  poppler_dep = dependency('poppler-glib', version: '>= 0.17.4',
+                           required: get_option('tests'))
   if poppler_dep.found() and cc.has_function('poppler_page_render', dependencies: [poppler_dep])
     conf.set('CAIRO_CAN_TEST_PDF_SURFACE', 1)
-    deps += [poppler_dep]
+    test_deps += [poppler_dep]
   endif
 endif
 
 if feature_conf.get('CAIRO_HAS_SVG_SURFACE', 0) == 1
-  librsvg_dep = dependency('librsvg-2.0', required: false, version: '>= 2.35.0')
-  if librsvg_dep.found() and cc.has_function('rsvg_pixbuf_from_file', dependencies: librsvg_dep)
+  librsvg_dep = dependency('librsvg-2.0', version: '>= 2.35.0',
+                           fallback: ['librsvg', 'librsvg_dep'],
+                           required: get_option('tests'))
+  if librsvg_dep.found()
     conf.set('CAIRO_CAN_TEST_SVG_SURFACE', 1)
-    deps += [librsvg_dep]
+    test_deps += [librsvg_dep]
   endif
 endif
 
 pixman_dep = dependency('pixman-1',
-  required: false,
+  required: get_option('image'),
   version: '>= 0.30.0',
   fallback: ['pixman', 'pixman_dep'],
 )
