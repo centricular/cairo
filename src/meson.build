@@ -308,6 +308,9 @@ libcairo = library('cairo', cairo_sources,
 
 cairo_headers += [configure_file(output: 'cairo-features.h', configuration: feature_conf)]
 
+libcairo_dep = declare_dependency(link_with: libcairo,
+  include_directories: incbase)
+
 pkgmod.generate(libcairo,
   description: 'Multi-platform 2D graphics library',
   subdirs: [meson.project_name()],
