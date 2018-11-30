@@ -17,7 +17,9 @@ libcairogobject = library('cairo-gobject', cairo_gobject_sources,
   install: true,
 )
 
+incgobject = include_directories('.')
+
 libcairogobject_dep = declare_dependency(link_with: libcairogobject,
-  include_directories: incbase)
+  include_directories: [incbase, incgobject])
 
 install_headers(cairo_gobject_headers, subdir: 'cairo')
