@@ -462,9 +462,10 @@ if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0 and ['auto', 'glesv2'].conta
       extra_link_args += glesv2_extra_libs
     endif
   else
-    glesv2_extra_libs = ''
+    glesv2_extra_libs = []
     glesv2_requires = 'glesv2'
     use_glesv2 = true
+    deps += [glesv2_dep]
   endif
 
   if use_glesv2
@@ -483,18 +484,19 @@ endif
 
 if feature_conf.get('CAIRO_HAS_GL_SURFACE', 0) == 0 and feature_conf.get('CAIRO_HAS_GLESV2_SURFACE', 0) == 0 and ['auto', 'glesv3'].contains(gl_backend)
   use_glesv3 = false
-  glesv3_dep = dependency('glesv3', required: gl_backend == 'glesv3')
-  if not glesv3_dep.found()
-    if cc.has_header('GLES3/gl3.h')
-      use_glesv3 = true
-      glesv3_extra_libs = ['-lGLESv3']
-      glesv3_requires = ''
-      extra_link_args += glesv3_extra_libs
-    endif
-  else
+  # glesv3 is provided via libGLESv2.so (there is no libGLESv3, nor glesv3.pc)
+  glesv3_dep = dependency('glesv2', required: gl_backend == 'glesv3')
+  if cc.has_header('GLES3/gl3.h', dependencies: glesv3_dep)
     use_glesv3 = true
-    glesv3_extra_libs = ''
-    glesv3_requires = 'glesv3'
+    if not glesv3_dep.found()
+      glesv3_extra_libs = ['-lGLESv2']
+      extra_link_args += glesv3_extra_libs
+      glesv3_requires = ''
+    else
+      glesv3_extra_libs = []
+      glesv3_requires = 'glesv2'
+      deps += [glesv3_dep]
+    endif
   endif
 
   if use_glesv3
