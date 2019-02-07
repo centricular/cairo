@@ -422,7 +422,7 @@ need_glx_functions = false
 if ['auto', 'gl'].contains(gl_backend)
   gl_dep = dependency('gl', required: gl_backend == 'gl')
   if not gl_dep.found()
-    if cc.has_header('GL/gl.h')
+    if cc.has_header('GL/gl.h') and host_machine.system() != 'windows'
       gl_extra_libs = ['-lGL']
       gl_requires = ''
       extra_link_args += gl_extra_libs
