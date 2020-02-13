@@ -888,7 +888,7 @@ endif
 
 subdir('util')
 
-if feature_conf.get('CAIRO_HAS_PNG_FUNCTIONS', 0) == 1
+if not get_option('tests').disabled() and feature_conf.get('CAIRO_HAS_PNG_FUNCTIONS', 0) == 1
   subdir('test')
 endif
 
