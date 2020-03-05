@@ -738,7 +738,7 @@ endif
 pixman_dep = dependency('pixman-1',
   required: get_option('image'),
   version: '>= 0.36.0',
-  fallback: ['pixman', 'pixman_dep'],
+  fallback: ['pixman', 'idep_pixman'],
 )
 if pixman_dep.found()
   feature_conf.set('CAIRO_HAS_IMAGE_SURFACE', 1)
