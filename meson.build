@@ -737,7 +737,7 @@ endif
 
 pixman_dep = dependency('pixman-1',
   required: get_option('image'),
-  version: '>= 0.30.0',
+  version: '>= 0.36.0',
   fallback: ['pixman', 'pixman_dep'],
 )
 if pixman_dep.found()

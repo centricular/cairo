@@ -22,6 +22,7 @@ if conf.get('CAIRO_HAS_TRACE', 0) == 1
 endif
 
 if (glib_dep.found() and
+    png_dep.found() and
     host_machine.system() != 'windows' and
     conf.get('CAIRO_HAS_DLSYM', 0) == 1 and
     feature_conf.get('CAIRO_HAS_SCRIPT_SURFACE', 0) == 1 and
